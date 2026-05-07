@@ -1,0 +1,32 @@
+{% extends "core/base.html" %}
+
+{% block content %}
+<section class="panel">
+    <div class="panel-heading">
+        <h2>Capacité de production</h2>
+        <a class="button-link" href="{% url 'set-create' %}">Créer un set</a>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Set</th>
+                <th>Coût de fabrication</th>
+                <th>Nombre faisable</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in set_rows %}
+                <tr class="{% if row.low_stock %}critical{% endif %}">
+                    <td>{{ row.set.name }}</td>
+                    <td>{{ row.cost }} €</td>
+                    <td>{{ row.possible }}</td>
+                    <td class="actions"><a href="{% url 'set-detail' row.set.pk %}">Détail</a></td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="4">Aucun set.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+{% endblock %}

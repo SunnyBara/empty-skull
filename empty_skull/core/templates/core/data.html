@@ -1,0 +1,116 @@
+{% extends "core/base.html" %}
+
+{% block content %}
+<section class="grid two">
+    <article class="panel">
+        <h2>Ajouter un tool</h2>
+        <form method="post">
+            {% csrf_token %}
+            {{ tool_form.as_p }}
+            <button type="submit" name="create_tool">Ajouter</button>
+        </form>
+    </article>
+
+    <article class="panel">
+        <h2>Ajouter un consommable</h2>
+        <form method="post">
+            {% csrf_token %}
+            {{ consumable_form.as_p }}
+            <button type="submit" name="create_consumable">Ajouter</button>
+        </form>
+    </article>
+</section>
+
+<section class="panel">
+    <div class="panel-heading">
+        <h2>Tools</h2>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Nom</th>
+                <th>Utilisations</th>
+                <th>Prix</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for tool in tools %}
+                <tr>
+                    <td>{{ tool.name }}</td>
+                    <td>{{ tool.usage_count }}</td>
+                    <td>{{ tool.price }} €</td>
+                    <td class="actions">
+                        <a href="{% url 'tool-update' tool.pk %}">Modifier</a>
+                        <a href="{% url 'tool-delete' tool.pk %}">Supprimer</a>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="4">Aucun tool.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+
+<section class="panel">
+    <div class="panel-heading">
+        <h2>Consommables</h2>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Nom</th>
+                <th>Quantité</th>
+                <th>Dimension</th>
+                <th>Prix total</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for consumable in consumables %}
+                <tr>
+                    <td>{{ consumable.name }}</td>
+                    <td>{{ consumable.quantity }}</td>
+                    <td>{{ consumable.dimension }}</td>
+                    <td>{{ consumable.price }} €</td>
+                    <td class="actions">
+                        <a href="{% url 'consumable-update' consumable.pk %}">Modifier</a>
+                        <a href="{% url 'consumable-delete' consumable.pk %}">Supprimer</a>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="5">Aucun consommable.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+
+<section class="panel">
+    <div class="panel-heading">
+        <h2>Sets</h2>
+        <a class="button-link" href="{% url 'set-create' %}">Créer un set</a>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Nom</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for set_obj in sets %}
+                <tr>
+                    <td>{{ set_obj.name }}</td>
+                    <td class="actions">
+                        <a href="{% url 'set-detail' set_obj.pk %}">Voir</a>
+                        <a href="{% url 'set-update' set_obj.pk %}">Modifier</a>
+                        <a href="{% url 'set-delete' set_obj.pk %}">Supprimer</a>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="2">Aucun set.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+{% endblock %}

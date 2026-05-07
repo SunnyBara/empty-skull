@@ -1,0 +1,40 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>empty_skull</title>
+    <link rel="stylesheet" href="{% static 'core/styles.css' %}">
+</head>
+<body>
+    <div class="bg-orb orb-a"></div>
+    <div class="bg-orb orb-b"></div>
+    <div class="bg-orb orb-c"></div>
+    <header class="shell-header">
+        <div class="brand-lockup">
+            <p class="eyebrow">Nail art utility</p>
+            <h1>empty_skull</h1>
+            <p class="brand-subtitle">Stock, sets et production dans un univers pop-goth.</p>
+        </div>
+        <nav class="main-nav">
+            <a href="{% url 'data' %}">Data</a>
+            <a href="{% url 'stock' %}">Stock</a>
+            <a href="{% url 'set-list' %}">Sets</a>
+            <a href="{% url 'production' %}">Production</a>
+        </nav>
+    </header>
+
+    {% if messages %}
+        <section class="messages">
+            {% for message in messages %}
+                <article class="message {{ message.tags }}">{{ message|safe }}</article>
+            {% endfor %}
+        </section>
+    {% endif %}
+
+    <main class="page">
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

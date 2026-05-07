@@ -1,0 +1,98 @@
+{% extends "core/base.html" %}
+
+{% block content %}
+<section class="grid two">
+    <article class="panel">
+        <h2>Ajouter au stock</h2>
+        <form method="post">
+            {% csrf_token %}
+            <div class="field-group">
+                <label>Type d'item</label>
+                <div class="choice-pills">{{ form.item_type }}</div>
+            </div>
+            <div class="field-group stock-target" data-stock-target="tool">
+                <label for="{{ form.tool.id_for_label }}">Tool</label>
+                {{ form.tool }}
+            </div>
+            <div class="field-group stock-target" data-stock-target="consumable">
+                <label for="{{ form.consumable.id_for_label }}">Consommable</label>
+                {{ form.consumable }}
+            </div>
+            <div class="field-group">
+                <label for="{{ form.quantity.id_for_label }}">{{ form.quantity.label }}</label>
+                {{ form.quantity }}
+                <p class="field-help" id="stock-quantity-help">
+                    Pour un consommable, la valeur saisie correspond à un nombre d'unités complètes de stock.
+                </p>
+            </div>
+            {% if form.non_field_errors %}
+                <div class="form-errors">{{ form.non_field_errors }}</div>
+            {% endif %}
+            <button type="submit">Ajouter</button>
+        </form>
+    </article>
+
+    <article class="panel">
+        <h2>Réinitialiser</h2>
+        <p>Vide tous les niveaux de stock actuels.</p>
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" name="reset_stocks" class="danger">Vider les stocks</button>
+        </form>
+    </article>
+</section>
+
+<section class="panel">
+    <h2>Stock actuel</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Type</th>
+                <th>Nom</th>
+                <th>Quantité</th>
+                <th>Unité</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for stock in stocks %}
+                <tr>
+                    <td>{{ stock.item_kind }}</td>
+                    <td>{{ stock.item_name }}</td>
+                    <td>{{ stock.current_quantity }}</td>
+                    <td>{{ stock.item_unit }}</td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="4">Aucun stock enregistré.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+
+<script>
+    (function () {
+        const radios = document.querySelectorAll('input[name="item_type"]');
+        const targets = document.querySelectorAll("[data-stock-target]");
+
+        function syncTargetVisibility() {
+            const selected = document.querySelector('input[name="item_type"]:checked')?.value;
+            const helpText = document.getElementById("stock-quantity-help");
+            targets.forEach((target) => {
+                const isActive = target.dataset.stockTarget === selected;
+                target.hidden = !isActive;
+                const select = target.querySelector("select");
+                if (select) {
+                    select.disabled = !isActive;
+                }
+            });
+            if (helpText) {
+                helpText.textContent = selected === "consumable"
+                    ? "Pour un consommable, la valeur saisie correspond à un nombre d'unités complètes de stock."
+                    : "Pour un tool, la valeur saisie correspond au nombre d'outils ajoutés au stock.";
+            }
+        }
+
+        radios.forEach((radio) => radio.addEventListener("change", syncTargetVisibility));
+        syncTargetVisibility();
+    })();
+</script>
+{% endblock %}

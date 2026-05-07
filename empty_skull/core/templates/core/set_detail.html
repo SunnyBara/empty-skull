@@ -1,0 +1,65 @@
+{% extends "core/base.html" %}
+
+{% block content %}
+<section class="panel">
+    <div class="panel-heading">
+        <div>
+            <h2>{{ set_obj.name }}</h2>
+            <p>Coût: {{ cost }} € | Nombre faisable: {{ possible }}</p>
+        </div>
+        <a class="button-link" href="{% url 'set-update' set_obj.pk %}">Modifier</a>
+    </div>
+
+    <div class="grid two">
+        <article class="panel inset-panel">
+            <h3>Tools</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Stock actuel</th>
+                        <th>Coût par set</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in tool_rows %}
+                        <tr>
+                            <td>{{ row.item.item_name }}</td>
+                            <td>{{ row.stock }}</td>
+                            <td>{{ row.item.tool.cost_per_use|floatformat:2 }} €</td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="3">Aucun tool dans ce set.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </article>
+
+        <article class="panel inset-panel">
+            <h3>Consommables</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Quantité requise</th>
+                        <th>Stock actuel</th>
+                        <th>Coût par set</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in consumable_rows %}
+                        <tr class="{% if row.is_low %}critical{% endif %}">
+                            <td>{{ row.item.item_name }}</td>
+                            <td>{{ row.item.required_quantity }}</td>
+                            <td>{{ row.stock }}</td>
+                            <td>{{ row.item.cost_for_requirement|floatformat:2 }} €</td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="4">Aucun consommable dans ce set.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </article>
+    </div>
+</section>
+{% endblock %}

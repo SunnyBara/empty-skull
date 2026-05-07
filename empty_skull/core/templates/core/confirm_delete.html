@@ -1,0 +1,12 @@
+{% extends "core/base.html" %}
+
+{% block content %}
+<section class="panel narrow">
+    <h2>Confirmer la suppression</h2>
+    <p>Cette action est définitive.</p>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="danger">Supprimer</button>
+    </form>
+</section>
+{% endblock %}

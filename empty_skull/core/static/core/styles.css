@@ -1,0 +1,355 @@
+:root {
+    --bg: #1e1b58;
+    --bg-deep: #151245;
+    --panel: rgba(41, 31, 96, 0.82);
+    --panel-strong: rgba(54, 41, 128, 0.92);
+    --ink: #f8f5ff;
+    --muted: #c6bff1;
+    --accent: #df4fff;
+    --accent-2: #4ac7ff;
+    --accent-3: #f4dd39;
+    --line: rgba(182, 166, 255, 0.3);
+    --warn: rgba(244, 221, 57, 0.18);
+    --critical: rgba(255, 91, 143, 0.22);
+    --success: rgba(101, 255, 154, 0.18);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: "Trebuchet MS", "Avenir Next", sans-serif;
+    background:
+        radial-gradient(circle at 15% 20%, rgba(74, 199, 255, 0.12), transparent 18%),
+        radial-gradient(circle at 82% 16%, rgba(244, 221, 57, 0.16), transparent 14%),
+        radial-gradient(circle at 70% 78%, rgba(223, 79, 255, 0.18), transparent 22%),
+        linear-gradient(180deg, var(--bg) 0%, var(--bg-deep) 100%);
+    color: var(--ink);
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+}
+
+a {
+    color: #ffffff;
+    text-decoration-color: rgba(255, 255, 255, 0.4);
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background:
+        radial-gradient(circle at 50% 0%, rgba(223, 79, 255, 0.14), transparent 28%),
+        radial-gradient(circle at 100% 100%, rgba(74, 199, 255, 0.12), transparent 22%);
+    pointer-events: none;
+}
+
+.bg-orb {
+    position: fixed;
+    border-radius: 999px;
+    filter: blur(20px);
+    opacity: 0.45;
+    pointer-events: none;
+}
+
+.orb-a {
+    width: 120px;
+    height: 120px;
+    top: 18%;
+    left: 8%;
+    background: rgba(74, 199, 255, 0.32);
+}
+
+.orb-b {
+    width: 90px;
+    height: 90px;
+    top: 62%;
+    right: 10%;
+    background: rgba(223, 79, 255, 0.35);
+}
+
+.orb-c {
+    width: 70px;
+    height: 70px;
+    bottom: 12%;
+    left: 20%;
+    background: rgba(244, 221, 57, 0.3);
+}
+
+button,
+.button-link {
+    border: 0;
+    background: linear-gradient(135deg, var(--accent) 0%, #9b4dff 100%);
+    color: white;
+    padding: 0.8rem 1rem;
+    border-radius: 999px;
+    text-decoration: none;
+    cursor: pointer;
+    display: inline-block;
+    box-shadow: 0 10px 30px rgba(223, 79, 255, 0.28);
+    font-weight: 700;
+}
+
+button.danger {
+    background: linear-gradient(135deg, #ff5b8f 0%, #d93fff 100%);
+}
+
+.shell-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: end;
+    gap: 1rem;
+    padding: 2rem 3rem 1rem;
+    position: relative;
+    z-index: 1;
+}
+
+.eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    font-size: 0.72rem;
+    margin: 0;
+    color: var(--accent-2);
+}
+
+h1,
+h2,
+h3 {
+    margin: 0;
+}
+
+h1 {
+    font-size: clamp(2.4rem, 5vw, 4.6rem);
+    letter-spacing: 0.04em;
+    color: #ff6ff9;
+    text-shadow:
+        0 0 8px rgba(223, 79, 255, 0.75),
+        0 0 20px rgba(223, 79, 255, 0.45);
+}
+
+.brand-subtitle {
+    margin: 0.35rem 0 0;
+    color: var(--muted);
+}
+
+.main-nav {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.main-nav a {
+    padding: 0.65rem 0.95rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    text-decoration: none;
+    backdrop-filter: blur(12px);
+}
+
+.page {
+    padding: 1rem 3rem 3rem;
+    position: relative;
+    z-index: 1;
+}
+
+.messages {
+    padding: 0 3rem;
+    position: relative;
+    z-index: 1;
+}
+
+.message {
+    padding: 1rem;
+    border-radius: 16px;
+    margin-bottom: 0.75rem;
+    background: var(--warn);
+    border: 1px solid rgba(244, 221, 57, 0.32);
+}
+
+.message.success {
+    background: var(--success);
+    border-color: rgba(101, 255, 154, 0.32);
+}
+
+.message.warning {
+    background: rgba(255, 91, 143, 0.2);
+    border-color: rgba(255, 91, 143, 0.5);
+    color: #ffdce8;
+}
+
+.message.warning a {
+    color: #ffffff;
+    text-decoration-color: rgba(255, 255, 255, 0.5);
+}
+
+.grid.two {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+}
+
+.panel {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow:
+        0 18px 40px rgba(8, 5, 31, 0.38),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(12px);
+}
+
+.panel.narrow {
+    max-width: 700px;
+}
+
+.inset-panel {
+    background: rgba(21, 18, 69, 0.52);
+    margin-bottom: 0;
+}
+
+.panel-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th,
+td {
+    padding: 0.9rem 0.5rem;
+    border-bottom: 1px solid var(--line);
+    text-align: left;
+}
+
+th {
+    color: var(--accent-2);
+}
+
+.actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.critical {
+    background: var(--critical);
+}
+
+.formset {
+    display: grid;
+    gap: 1rem;
+}
+
+.formset-row {
+    padding: 1rem;
+    background: var(--panel-strong);
+    border-radius: 18px;
+    border: 1px solid var(--line);
+}
+
+.set-item-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+}
+
+.set-item-delete {
+    display: none;
+}
+
+.field-group {
+    margin-bottom: 1rem;
+}
+
+.field-group label {
+    display: block;
+    margin-bottom: 0.45rem;
+    font-weight: 600;
+}
+
+.field-help {
+    margin: 0.45rem 0 0;
+    color: var(--muted);
+    font-size: 0.92rem;
+}
+
+.choice-pills ul {
+    list-style: none;
+    display: flex;
+    gap: 0.75rem;
+    padding: 0;
+    margin: 0;
+}
+
+.choice-pills li {
+    margin: 0;
+}
+
+.choice-pills label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.7rem 1rem;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.05);
+    cursor: pointer;
+}
+
+.choice-pills input {
+    width: auto;
+    margin: 0;
+}
+
+.form-errors ul {
+    margin: 0 0 1rem;
+    padding: 0.75rem 1rem;
+    list-style: none;
+    background: var(--critical);
+    border-radius: 14px;
+}
+
+input,
+select {
+    width: 100%;
+    padding: 0.7rem;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: rgba(14, 11, 43, 0.88);
+    color: var(--ink);
+}
+
+input::placeholder {
+    color: var(--muted);
+}
+
+select option {
+    color: #ffffff;
+    background: #241c66;
+}
+
+@media (max-width: 720px) {
+    .shell-header,
+    .page,
+    .messages {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+
+    .shell-header {
+        align-items: start;
+        flex-direction: column;
+    }
+}

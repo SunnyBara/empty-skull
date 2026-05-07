@@ -1,0 +1,12 @@
+{% extends "core/base.html" %}
+
+{% block content %}
+<section class="panel narrow">
+    <h2>Valider une production</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Déduire les consommables</button>
+    </form>
+</section>
+{% endblock %}
