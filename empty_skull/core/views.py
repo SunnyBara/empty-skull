@@ -9,7 +9,15 @@ from django.utils.html import format_html
 from django.views import View
 from django.views.generic import DeleteView, UpdateView
 
-from .forms import ConsumableForm, ProductionForm, SetForm, SetItemFormSet, StockAdjustmentForm, ToolForm
+from .forms import (
+    ConsumableForm,
+    ProductionForm,
+    SetForm,
+    SetItemFormSet,
+    StockAdjustmentForm,
+    StockManualUpdateForm,
+    ToolForm,
+)
 from .models import Consumable, Set, SetItem, Stock, Tool
 
 
@@ -180,13 +188,17 @@ class SetDeleteView(DeleteView):
 class StockView(View):
     template_name = "core/stock.html"
 
-    def get(self, request: HttpRequest) -> HttpResponse:
-        ensure_stock_records()
-        context = {
-            "form": StockAdjustmentForm(),
+    @staticmethod
+    def build_context(form: StockAdjustmentForm | None = None, manual_form: StockManualUpdateForm | None = None) -> dict:
+        return {
+            "form": form or StockAdjustmentForm(),
+            "manual_form": manual_form or StockManualUpdateForm(),
             "stocks": Stock.objects.select_related("tool", "consumable"),
         }
-        return render(request, self.template_name, context)
+
+    def get(self, request: HttpRequest) -> HttpResponse:
+        ensure_stock_records()
+        return render(request, self.template_name, self.build_context())
 
     def post(self, request: HttpRequest) -> HttpResponse:
         ensure_stock_records()
@@ -196,6 +208,23 @@ class StockView(View):
             push_low_stock_messages(request)
             return redirect("stock")
 
+        if "reset_stock_item" in request.POST:
+            stock = get_object_or_404(Stock, pk=request.POST.get("stock_id"))
+            stock.current_quantity = Decimal("0.00")
+            stock.save(update_fields=["current_quantity"])
+            messages.success(request, f"Stock remis à zéro pour {stock.item_name}.")
+            push_low_stock_messages(request)
+            return redirect("stock")
+
+        if "manual_update_stock" in request.POST:
+            manual_form = StockManualUpdateForm(request.POST)
+            if manual_form.is_valid():
+                stock = manual_form.save()
+                messages.success(request, f"Stock modifié manuellement pour {stock.item_name}.")
+                push_low_stock_messages(request)
+                return redirect("stock")
+            return render(request, self.template_name, self.build_context(manual_form=manual_form))
+
         form = StockAdjustmentForm(request.POST)
         if form.is_valid():
             stock = form.save()
@@ -203,11 +232,7 @@ class StockView(View):
             push_low_stock_messages(request)
             return redirect("stock")
 
-        context = {
-            "form": form,
-            "stocks": Stock.objects.select_related("tool", "consumable"),
-        }
-        return render(request, self.template_name, context)
+        return render(request, self.template_name, self.build_context(form=form))
 
 
 class SetListView(View):

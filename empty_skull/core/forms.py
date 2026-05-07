@@ -123,6 +123,28 @@ class StockAdjustmentForm(forms.Form):
         return stock
 
 
+class StockManualUpdateForm(forms.Form):
+    stock_id = forms.IntegerField(widget=forms.HiddenInput)
+    current_quantity = forms.DecimalField(
+        min_value=Decimal("0.00"),
+        decimal_places=2,
+        max_digits=10,
+        label="Stock courant",
+    )
+
+    def clean_stock_id(self):
+        stock_id = self.cleaned_data["stock_id"]
+        if not Stock.objects.filter(pk=stock_id).exists():
+            raise forms.ValidationError("Stock introuvable.")
+        return stock_id
+
+    def save(self) -> Stock:
+        stock = Stock.objects.get(pk=self.cleaned_data["stock_id"])
+        stock.current_quantity = self.cleaned_data["current_quantity"]
+        stock.save(update_fields=["current_quantity"])
+        return stock
+
+
 class ProductionForm(forms.Form):
     set = forms.ModelChoiceField(queryset=Set.objects.all())
     quantity = forms.IntegerField(min_value=1, initial=1)

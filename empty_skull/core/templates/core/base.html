@@ -36,5 +36,25 @@
     <main class="page">
         {% block content %}{% endblock %}
     </main>
+
+    <script>
+        (function () {
+            const storageKey = `scroll-position:${window.location.pathname}`;
+
+            document.querySelectorAll('form[method="post" i]').forEach((form) => {
+                form.addEventListener('submit', function () {
+                    sessionStorage.setItem(storageKey, String(window.scrollY));
+                });
+            });
+
+            const savedScroll = sessionStorage.getItem(storageKey);
+            if (savedScroll !== null) {
+                window.requestAnimationFrame(() => {
+                    window.scrollTo({ top: Number(savedScroll), behavior: 'auto' });
+                    sessionStorage.removeItem(storageKey);
+                });
+            }
+        })();
+    </script>
 </body>
 </html>

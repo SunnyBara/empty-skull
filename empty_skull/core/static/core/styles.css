@@ -243,6 +243,42 @@ th {
     flex-wrap: wrap;
 }
 
+.stock-row-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.inline-stock-form {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+    margin: 0;
+}
+
+.inline-stock-form input {
+    width: 110px;
+    padding: 0.55rem 0.7rem;
+}
+
+.inline-stock-form button {
+    padding: 0.55rem 0.85rem;
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
 .critical {
     background: var(--critical);
 }

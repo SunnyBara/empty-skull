@@ -51,6 +51,7 @@
                 <th>Nom</th>
                 <th>Quantité</th>
                 <th>Unité</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -60,9 +61,25 @@
                     <td>{{ stock.item_name }}</td>
                     <td>{{ stock.current_quantity }}</td>
                     <td>{{ stock.item_unit }}</td>
+                    <td>
+                        <div class="stock-row-actions">
+                            <form method="post" class="inline-stock-form">
+                                {% csrf_token %}
+                                <input type="hidden" name="stock_id" value="{{ stock.pk }}">
+                                <label class="sr-only" for="manual-stock-{{ stock.pk }}">Stock courant pour {{ stock.item_name }}</label>
+                                <input id="manual-stock-{{ stock.pk }}" type="number" step="0.01" min="0" name="current_quantity" value="{{ stock.current_quantity }}">
+                                <button type="submit" name="manual_update_stock">Modifier</button>
+                            </form>
+                            <form method="post" class="inline-stock-form">
+                                {% csrf_token %}
+                                <input type="hidden" name="stock_id" value="{{ stock.pk }}">
+                                <button type="submit" name="reset_stock_item" class="danger">Reset cet item</button>
+                            </form>
+                        </div>
+                    </td>
                 </tr>
             {% empty %}
-                <tr><td colspan="4">Aucun stock enregistré.</td></tr>
+                <tr><td colspan="5">Aucun stock enregistré.</td></tr>
             {% endfor %}
         </tbody>
     </table>
