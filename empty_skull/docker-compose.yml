@@ -22,9 +22,12 @@ services:
     environment:
       POSTGRES_HOST: db
       POSTGRES_PORT: 5432
+    volumes:
+      - media_data:/app/media
     depends_on:
       db:
         condition: service_healthy
 
 volumes:
   postgres_data:
+  media_data:

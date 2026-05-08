@@ -3,7 +3,7 @@ from decimal import Decimal
 from django import forms
 from django.forms import inlineformset_factory
 
-from .models import Consumable, Set, SetItem, Stock, Tool
+from .models import Consumable, FavoriteItem, Set, SetItem, Stock, Tool
 
 
 class ToolForm(forms.ModelForm):
@@ -21,7 +21,7 @@ class ConsumableForm(forms.ModelForm):
 class SetForm(forms.ModelForm):
     class Meta:
         model = Set
-        fields = ("name",)
+        fields = ("name", "image")
 
 
 class SetItemForm(forms.ModelForm):
@@ -30,11 +30,7 @@ class SetItemForm(forms.ModelForm):
         ("consumable", "Consommable"),
     )
 
-    item_type = forms.ChoiceField(
-        choices=ITEM_CHOICES,
-        widget=forms.RadioSelect,
-        initial="consumable",
-    )
+    item_type = forms.ChoiceField(choices=ITEM_CHOICES, widget=forms.RadioSelect, initial="consumable")
     required_quantity = forms.DecimalField(min_value=Decimal("0.01"), decimal_places=2, max_digits=10, required=False)
 
     class Meta:
@@ -68,13 +64,42 @@ class SetItemForm(forms.ModelForm):
         return cleaned
 
 
-SetItemFormSet = inlineformset_factory(
-    Set,
-    SetItem,
-    form=SetItemForm,
-    extra=0,
-    can_delete=True,
-)
+class FavoriteItemForm(forms.ModelForm):
+    ITEM_CHOICES = (
+        ("tool", "Tool"),
+        ("consumable", "Consommable"),
+    )
+
+    item_type = forms.ChoiceField(choices=ITEM_CHOICES, widget=forms.RadioSelect, initial="consumable")
+    required_quantity = forms.DecimalField(min_value=Decimal("0.01"), decimal_places=2, max_digits=10, required=False)
+
+    class Meta:
+        model = FavoriteItem
+        fields = ("item_type", "tool", "consumable", "required_quantity")
+
+    def clean(self):
+        cleaned = super().clean()
+        item_type = cleaned.get("item_type")
+        tool = cleaned.get("tool")
+        consumable = cleaned.get("consumable")
+
+        if item_type == "tool":
+            cleaned["consumable"] = None
+            cleaned["required_quantity"] = Decimal("1.00")
+            if not tool:
+                raise forms.ValidationError("Sélectionnez un tool.")
+        elif item_type == "consumable":
+            cleaned["tool"] = None
+            if not cleaned.get("required_quantity"):
+                raise forms.ValidationError("Saisissez une quantité pour le consommable favori.")
+            if not consumable:
+                raise forms.ValidationError("Sélectionnez un consommable.")
+        else:
+            raise forms.ValidationError("Choisir soit un tool soit un consommable.")
+        return cleaned
+
+
+SetItemFormSet = inlineformset_factory(Set, SetItem, form=SetItemForm, extra=0, can_delete=True)
 
 
 class StockAdjustmentForm(forms.Form):
@@ -83,19 +108,10 @@ class StockAdjustmentForm(forms.Form):
         ("consumable", "Consommable"),
     )
 
-    item_type = forms.ChoiceField(
-        choices=ITEM_CHOICES,
-        widget=forms.RadioSelect,
-        initial="consumable",
-    )
+    item_type = forms.ChoiceField(choices=ITEM_CHOICES, widget=forms.RadioSelect, initial="consumable")
     tool = forms.ModelChoiceField(queryset=Tool.objects.all(), required=False)
     consumable = forms.ModelChoiceField(queryset=Consumable.objects.all(), required=False)
-    quantity = forms.DecimalField(
-        min_value=Decimal("0.01"),
-        decimal_places=2,
-        max_digits=10,
-        label="Nombre d'unités à ajouter",
-    )
+    quantity = forms.DecimalField(min_value=Decimal("0.01"), decimal_places=2, max_digits=10, label="Nombre d'unités à ajouter")
 
     def clean(self):
         cleaned = super().clean()
@@ -125,12 +141,7 @@ class StockAdjustmentForm(forms.Form):
 
 class StockManualUpdateForm(forms.Form):
     stock_id = forms.IntegerField(widget=forms.HiddenInput)
-    current_quantity = forms.DecimalField(
-        min_value=Decimal("0.00"),
-        decimal_places=2,
-        max_digits=10,
-        label="Stock courant",
-    )
+    current_quantity = forms.DecimalField(min_value=Decimal("0.00"), decimal_places=2, max_digits=10, label="Stock courant")
 
     def clean_stock_id(self):
         stock_id = self.cleaned_data["stock_id"]

@@ -3,7 +3,7 @@
 {% block content %}
 <section class="panel">
     <h2>{{ title }}</h2>
-    <form method="post">
+    <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
         {% if form.non_field_errors %}
             <div class="form-errors">{{ form.non_field_errors }}</div>
@@ -15,6 +15,57 @@
                 <div class="form-errors">{{ form.name.errors }}</div>
             {% endif %}
         </div>
+        <div class="field-group">
+            <label for="{{ form.image.id_for_label }}">Image du set</label>
+            {{ form.image }}
+            {% if form.image.errors %}
+                <div class="form-errors">{{ form.image.errors }}</div>
+            {% endif %}
+            {% if form.instance.image %}
+                <div class="set-image-preview">
+                    <img src="{{ form.instance.image.url }}" alt="Image actuelle de {{ form.instance.name }}">
+                </div>
+            {% endif %}
+        </div>
+
+        {% if favorites %}
+            <section class="favorite-preset-panel">
+                <div class="panel-heading">
+                    <h3>Favoris disponibles</h3>
+                    <a href="{% url 'favorites' %}">Gérer les favoris</a>
+                </div>
+                <div class="favorite-chip-grid">
+                    {% for favorite in favorites %}
+                        <button
+                            type="button"
+                            class="favorite-chip"
+                            data-favorite-type="{% if favorite.tool_id %}tool{% else %}consumable{% endif %}"
+                            data-favorite-tool="{{ favorite.tool_id|default:'' }}"
+                            data-favorite-consumable="{{ favorite.consumable_id|default:'' }}"
+                            data-favorite-quantity="{{ favorite.required_quantity }}"
+                        >
+                            <strong>{{ favorite.item_name }}</strong>
+                            <span>
+                                {% if favorite.tool_id %}
+                                    Tool
+                                {% else %}
+                                    {{ favorite.required_quantity }} {{ favorite.consumable.dimension }}
+                                {% endif %}
+                            </span>
+                        </button>
+                    {% endfor %}
+                </div>
+            </section>
+        {% else %}
+            <section class="favorite-preset-panel empty-state">
+                <div class="panel-heading">
+                    <h3>Favoris disponibles</h3>
+                    <a href="{% url 'favorites' %}">Créer des favoris</a>
+                </div>
+                <p>Aucun favori pour le moment. Crée une liste de composants récurrents pour préremplir tes sets.</p>
+            </section>
+        {% endif %}
+
         {{ formset.management_form }}
         <div class="panel-heading">
             <h3>Composition du set</h3>
@@ -105,29 +156,24 @@
         const container = document.getElementById("set-items");
         const template = document.getElementById("empty-set-item-template");
         const totalFormsInput = document.getElementById("id_items-TOTAL_FORMS");
+        const favoriteButtons = document.querySelectorAll(".favorite-chip");
 
         function syncRowType(row) {
             const selected = row.querySelector('input[type="radio"][name$="-item_type"]:checked')?.value;
             row.querySelectorAll(".set-item-target").forEach((target) => {
                 const targetType = target.dataset.itemTarget;
-                const isActive =
-                    targetType === selected ||
-                    (selected === "consumable" && targetType === "consumable-quantity");
+                const isActive = targetType === selected || (selected === "consumable" && targetType === "consumable-quantity");
                 target.hidden = !isActive;
-                const select = target.querySelector("select");
-                if (select) {
-                    select.disabled = !isActive;
-                    if (!isActive) {
-                        select.selectedIndex = 0;
+
+                target.querySelectorAll("select, input").forEach((field) => {
+                    field.disabled = !isActive;
+                    if (!isActive && field.tagName === "SELECT") {
+                        field.selectedIndex = 0;
                     }
-                }
-                const input = target.querySelector('input[type="number"], input[type="text"]');
-                if (input) {
-                    input.disabled = !isActive;
-                    if (!isActive) {
-                        input.value = "";
+                    if (!isActive && field.name.endsWith("required_quantity")) {
+                        field.value = "";
                     }
-                }
+                });
             });
         }
 
@@ -159,20 +205,60 @@
             scope.querySelectorAll(".formset-row").forEach(syncRowType);
         }
 
-        addButton.addEventListener("click", () => {
+        function addLine(prefill = null) {
             const formIndex = Number(totalFormsInput.value);
             const html = template.innerHTML.replaceAll("__prefix__", String(formIndex));
             container.insertAdjacentHTML("beforeend", html);
             totalFormsInput.value = formIndex + 1;
             bindRemoveButtons(container);
             bindTypeSwitches(container);
+
+            const row = container.lastElementChild;
+            if (!prefill || !row) {
+                return;
+            }
+
+            const typeInput = row.querySelector(`input[type="radio"][value="${prefill.type}"]`);
+            if (typeInput) {
+                typeInput.checked = true;
+            }
+            syncRowType(row);
+
+            if (prefill.type === "tool") {
+                const toolSelect = row.querySelector('select[name$="-tool"]');
+                if (toolSelect) {
+                    toolSelect.value = prefill.toolId;
+                }
+            } else {
+                const consumableSelect = row.querySelector('select[name$="-consumable"]');
+                const quantityInput = row.querySelector('input[name$="-required_quantity"]');
+                if (consumableSelect) {
+                    consumableSelect.value = prefill.consumableId;
+                }
+                if (quantityInput) {
+                    quantityInput.value = String(prefill.quantity).replace(",", ".");
+                }
+            }
+        }
+
+        addButton.addEventListener("click", () => addLine());
+
+        favoriteButtons.forEach((button) => {
+            button.addEventListener("click", () => {
+                addLine({
+                    type: button.dataset.favoriteType,
+                    toolId: button.dataset.favoriteTool,
+                    consumableId: button.dataset.favoriteConsumable,
+                    quantity: button.dataset.favoriteQuantity,
+                });
+            });
         });
 
         bindRemoveButtons(container);
         bindTypeSwitches(container);
 
         if (Number(totalFormsInput.value) === 0) {
-            addButton.click();
+            addLine();
         }
     })();
 </script>

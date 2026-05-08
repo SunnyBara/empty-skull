@@ -4,6 +4,7 @@ from .views import (
     ConsumableDeleteView,
     ConsumableUpdateView,
     DataView,
+    FavoritesView,
     HomeView,
     ProductionView,
     SetCreateView,
@@ -20,6 +21,7 @@ from .views import (
 urlpatterns = [
     path("", HomeView.as_view(), name="home"),
     path("data/", DataView.as_view(), name="data"),
+    path("favorites/", FavoritesView.as_view(), name="favorites"),
     path("stock/", StockView.as_view(), name="stock"),
     path("sets/", SetListView.as_view(), name="set-list"),
     path("sets/create/", SetCreateView.as_view(), name="set-create"),

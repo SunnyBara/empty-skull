@@ -11,6 +11,7 @@ from django.views.generic import DeleteView, UpdateView
 
 from .forms import (
     ConsumableForm,
+    FavoriteItemForm,
     ProductionForm,
     SetForm,
     SetItemFormSet,
@@ -18,7 +19,7 @@ from .forms import (
     StockManualUpdateForm,
     ToolForm,
 )
-from .models import Consumable, Set, SetItem, Stock, Tool
+from .models import Consumable, FavoriteItem, Set, Stock, Tool
 
 
 def ensure_stock_records() -> None:
@@ -26,6 +27,10 @@ def ensure_stock_records() -> None:
         Stock.objects.get_or_create(tool=tool)
     for consumable in Consumable.objects.all():
         Stock.objects.get_or_create(consumable=consumable)
+
+
+def get_favorites() -> list[FavoriteItem]:
+    return list(FavoriteItem.objects.select_related("tool", "consumable"))
 
 
 def push_low_stock_messages(request: HttpRequest) -> None:
@@ -92,6 +97,37 @@ class DataView(View):
         return render(request, self.template_name, context)
 
 
+class FavoritesView(View):
+    template_name = "core/favorites.html"
+
+    def get(self, request: HttpRequest) -> HttpResponse:
+        context = {
+            "form": FavoriteItemForm(),
+            "favorites": get_favorites(),
+        }
+        return render(request, self.template_name, context)
+
+    def post(self, request: HttpRequest) -> HttpResponse:
+        if "delete_favorite" in request.POST:
+            favorite = get_object_or_404(FavoriteItem, pk=request.POST.get("favorite_id"))
+            favorite_name = favorite.item_name
+            favorite.delete()
+            messages.success(request, f"Favori supprimé pour {favorite_name}.")
+            return redirect("favorites")
+
+        form = FavoriteItemForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Favori ajouté.")
+            return redirect("favorites")
+
+        context = {
+            "form": form,
+            "favorites": get_favorites(),
+        }
+        return render(request, self.template_name, context)
+
+
 class ToolUpdateView(UpdateView):
     model = Tool
     form_class = ToolForm
@@ -134,13 +170,22 @@ class ConsumableDeleteView(DeleteView):
 class SetCreateView(View):
     template_name = "core/set_form.html"
 
+    @staticmethod
+    def build_context(form: SetForm, formset: SetItemFormSet, title: str) -> dict:
+        return {
+            "form": form,
+            "formset": formset,
+            "title": title,
+            "favorites": get_favorites(),
+        }
+
     def get(self, request: HttpRequest) -> HttpResponse:
         form = SetForm()
         formset = SetItemFormSet()
-        return render(request, self.template_name, {"form": form, "formset": formset, "title": "Créer un set"})
+        return render(request, self.template_name, self.build_context(form, formset, "Créer un set"))
 
     def post(self, request: HttpRequest) -> HttpResponse:
-        form = SetForm(request.POST)
+        form = SetForm(request.POST, request.FILES)
         formset = SetItemFormSet(request.POST)
         if form.is_valid() and formset.is_valid():
             with transaction.atomic():
@@ -150,7 +195,7 @@ class SetCreateView(View):
             messages.success(request, "Set créé.")
             push_low_stock_messages(request)
             return redirect("data")
-        return render(request, self.template_name, {"form": form, "formset": formset, "title": "Créer un set"})
+        return render(request, self.template_name, self.build_context(form, formset, "Créer un set"))
 
 
 class SetUpdateView(View):
@@ -160,11 +205,11 @@ class SetUpdateView(View):
         set_obj = get_object_or_404(Set, pk=pk)
         form = SetForm(instance=set_obj)
         formset = SetItemFormSet(instance=set_obj)
-        return render(request, self.template_name, {"form": form, "formset": formset, "title": f"Modifier {set_obj.name}"})
+        return render(request, self.template_name, SetCreateView.build_context(form, formset, f"Modifier {set_obj.name}"))
 
     def post(self, request: HttpRequest, pk: int) -> HttpResponse:
         set_obj = get_object_or_404(Set, pk=pk)
-        form = SetForm(request.POST, instance=set_obj)
+        form = SetForm(request.POST, request.FILES, instance=set_obj)
         formset = SetItemFormSet(request.POST, instance=set_obj)
         if form.is_valid() and formset.is_valid():
             with transaction.atomic():
@@ -173,7 +218,7 @@ class SetUpdateView(View):
             messages.success(request, "Set mis à jour.")
             push_low_stock_messages(request)
             return redirect("data")
-        return render(request, self.template_name, {"form": form, "formset": formset, "title": f"Modifier {set_obj.name}"})
+        return render(request, self.template_name, SetCreateView.build_context(form, formset, f"Modifier {set_obj.name}"))
 
 
 class SetDeleteView(DeleteView):
@@ -248,6 +293,7 @@ class SetListView(View):
                     "cost": set_obj.fabrication_cost(),
                     "possible": set_obj.max_producible(),
                     "low_stock": set_obj.max_producible() <= 2,
+                    "image": set_obj.image,
                 }
                 for set_obj in sets
             ]

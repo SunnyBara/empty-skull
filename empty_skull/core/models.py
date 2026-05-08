@@ -94,6 +94,7 @@ class Stock(models.Model):
 
 class Set(models.Model):
     name = models.CharField(max_length=120, unique=True)
+    image = models.ImageField(upload_to="sets/", null=True, blank=True)
 
     class Meta:
         ordering = ("name",)
@@ -133,6 +134,39 @@ class Set(models.Model):
             if capacity <= threshold:
                 flagged.append(item)
         return flagged
+
+
+class FavoriteItem(models.Model):
+    tool = models.ForeignKey(Tool, null=True, blank=True, on_delete=models.CASCADE)
+    consumable = models.ForeignKey(Consumable, null=True, blank=True, on_delete=models.CASCADE)
+    required_quantity = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("1.00"))
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ("created_at", "id")
+
+    def __str__(self) -> str:
+        if self.tool_id:
+            return self.tool.name
+        return f"{self.consumable.name} x {self.required_quantity}"
+
+    def clean(self) -> None:
+        has_tool = self.tool_id is not None
+        has_consumable = self.consumable_id is not None
+        if has_tool == has_consumable:
+            raise ValidationError("Chaque favori doit référencer un tool ou un consommable.")
+        if has_tool:
+            self.required_quantity = Decimal("1.00")
+        elif self.required_quantity <= ZERO:
+            raise ValidationError("Un consommable favori doit avoir une quantité supérieure à zéro.")
+
+    @property
+    def item_name(self) -> str:
+        return self.tool.name if self.tool_id else self.consumable.name
+
+    @property
+    def item_kind(self) -> str:
+        return "Tool" if self.tool_id else "Consommable"
 
 
 class SetItem(models.Model):

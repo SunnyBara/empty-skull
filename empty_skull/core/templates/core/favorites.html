@@ -1,0 +1,84 @@
+{% extends "core/base.html" %}
+
+{% block content %}
+<section class="grid two">
+    <article class="panel">
+        <h2>Ajouter un favori</h2>
+        <form method="post">
+            {% csrf_token %}
+            <div class="field-group">
+                <label>Type d'item</label>
+                <div class="choice-pills">{{ form.item_type }}</div>
+            </div>
+            <div class="field-group favorite-target" data-favorite-target="tool">
+                <label for="{{ form.tool.id_for_label }}">Tool</label>
+                {{ form.tool }}
+            </div>
+            <div class="field-group favorite-target" data-favorite-target="consumable">
+                <label for="{{ form.consumable.id_for_label }}">Consommable</label>
+                {{ form.consumable }}
+            </div>
+            <div class="field-group favorite-target" data-favorite-target="consumable-quantity">
+                <label for="{{ form.required_quantity.id_for_label }}">Quantité favorite</label>
+                {{ form.required_quantity }}
+            </div>
+            {% if form.non_field_errors %}
+                <div class="form-errors">{{ form.non_field_errors }}</div>
+            {% endif %}
+            <button type="submit">Ajouter au preset</button>
+        </form>
+    </article>
+
+    <article class="panel">
+        <h2>Bibliothèque de favoris</h2>
+        <div class="favorite-library">
+            {% for favorite in favorites %}
+                <article class="favorite-library-item">
+                    <div>
+                        <strong>{{ favorite.item_name }}</strong>
+                        <p>
+                            {% if favorite.tool_id %}
+                                Tool récurrent
+                            {% else %}
+                                {{ favorite.required_quantity }} {{ favorite.consumable.dimension }}
+                            {% endif %}
+                        </p>
+                    </div>
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="favorite_id" value="{{ favorite.pk }}">
+                        <button type="submit" name="delete_favorite" class="danger">Supprimer</button>
+                    </form>
+                </article>
+            {% empty %}
+                <p>Aucun favori enregistré.</p>
+            {% endfor %}
+        </div>
+    </article>
+</section>
+
+<script>
+    (function () {
+        const radios = document.querySelectorAll('input[name="item_type"]');
+        const targets = document.querySelectorAll('[data-favorite-target]');
+
+        function syncTargets() {
+            const selected = document.querySelector('input[name="item_type"]:checked')?.value;
+            targets.forEach((target) => {
+                const targetType = target.dataset.favoriteTarget;
+                const isActive = targetType === selected || (selected === 'consumable' && targetType === 'consumable-quantity');
+                target.hidden = !isActive;
+                target.querySelectorAll('select, input').forEach((field) => {
+                    field.disabled = !isActive;
+                    if (!isActive && field.tagName === 'SELECT') {
+                        field.selectedIndex = 0;
+                    }
+                });
+            });
+        }
+
+        radios.forEach((radio) => radio.addEventListener('change', syncTargets));
+        syncTargets();
+    })();
+</script>
+{% endblock %}

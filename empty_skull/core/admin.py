@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Consumable, Set, SetItem, Stock, Tool
+from .models import Consumable, FavoriteItem, Set, SetItem, Stock, Tool
 
 
 @admin.register(Tool)
@@ -21,6 +21,12 @@ class StockAdmin(admin.ModelAdmin):
     list_filter = ("tool", "consumable")
 
 
+@admin.register(FavoriteItem)
+class FavoriteItemAdmin(admin.ModelAdmin):
+    list_display = ("item_name", "item_kind", "required_quantity")
+    list_filter = ("tool", "consumable")
+
+
 class SetItemInline(admin.TabularInline):
     model = SetItem
     extra = 1
@@ -28,6 +34,6 @@ class SetItemInline(admin.TabularInline):
 
 @admin.register(Set)
 class SetAdmin(admin.ModelAdmin):
-    list_display = ("name", "fabrication_cost", "max_producible")
+    list_display = ("name", "image", "fabrication_cost", "max_producible")
     search_fields = ("name",)
     inlines = [SetItemInline]

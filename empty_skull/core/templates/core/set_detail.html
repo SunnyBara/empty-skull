@@ -10,6 +10,12 @@
         <a class="button-link" href="{% url 'set-update' set_obj.pk %}">Modifier</a>
     </div>
 
+    {% if set_obj.image %}
+        <div class="set-detail-hero">
+            <img src="{{ set_obj.image.url }}" alt="Visuel du set {{ set_obj.name }}">
+        </div>
+    {% endif %}
+
     <div class="grid two">
         <article class="panel inset-panel">
             <h3>Tools</h3>
