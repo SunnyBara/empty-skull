@@ -146,7 +146,10 @@
                 <button type="button" class="danger remove-set-item">Supprimer la ligne</button>
             </article>
         </template>
-        <button type="submit">Enregistrer le set</button>
+        <div class="form-actions">
+            <button type="button" id="add-set-item-bottom">Ajouter une ligne</button>
+            <button type="submit">Enregistrer le set</button>
+        </div>
     </form>
 </section>
 
@@ -157,6 +160,7 @@
         const template = document.getElementById("empty-set-item-template");
         const totalFormsInput = document.getElementById("id_items-TOTAL_FORMS");
         const favoriteButtons = document.querySelectorAll(".favorite-chip");
+        const addBottomButton = document.getElementById("add-set-item-bottom");
 
         function syncRowType(row) {
             const selected = row.querySelector('input[type="radio"][name$="-item_type"]:checked')?.value;
@@ -242,6 +246,9 @@
         }
 
         addButton.addEventListener("click", () => addLine());
+        if (addBottomButton) {
+            addBottomButton.addEventListener("click", () => addLine());
+        }
 
         favoriteButtons.forEach((button) => {
             button.addEventListener("click", () => {
